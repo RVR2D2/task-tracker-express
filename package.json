@@ -1,0 +1,31 @@
+{
+  "name": "task-tracker-express",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index",
+    "dev": "nodemon src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RVR2D2/task-tracker-express.git"
+  },
+  "author": "Vadim Redkin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RVR2D2/task-tracker-express/issues"
+  },
+  "homepage": "https://github.com/RVR2D2/task-tracker-express#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  }
+}
