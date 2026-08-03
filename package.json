@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index",
-    "dev": "nodemon src/index.ts",
+    "start": "dotenv -- tsx src/index.ts",
+    "dev": "dotenv -- tsx watch src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,9 +23,10 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "dotenv-cli": "^11.0.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.9.6",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.23.5",
     "typescript": "^7.0.2"
   }
 }
