@@ -2,6 +2,7 @@ import express from 'express';
 import basicAuth from 'express-basic-auth';
 import { ADMIN_LOGIN, ADMIN_PASSWORD, PORT } from './config';
 import { createTables } from './database/create-tables';
+import { logger } from './logger';
 import { cardsRouter } from './routers/cards.router';
 
 async function run() {
@@ -9,13 +10,15 @@ async function run() {
 
   const server = express();
 
-  server.use(express.json());
   server.use(
     basicAuth({
       users: { [ADMIN_LOGIN]: ADMIN_PASSWORD },
       challenge: true,
     }),
   );
+
+  server.use(express.json());
+  server.use(logger);
 
   server.get('/', (req, res) => {
     res.send('HELLO');

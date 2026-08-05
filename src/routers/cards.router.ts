@@ -9,6 +9,7 @@ import {
 } from '../database/cards-repository';
 import { Card, CreateCardRequest, GetCardsResponse } from '../types/cards';
 import { IdParams } from '../types/common';
+import { validateCardInput } from './validation/validate-card-input';
 
 export const cardsRouter = express.Router();
 
@@ -36,6 +37,7 @@ cardsRouter.get(
 
 cardsRouter.post(
   '/',
+  validateCardInput,
   async (req: Request<{}, Card, CreateCardRequest>, res: Response<Card>) => {
     const card: Card = {
       text: req.body.text,
@@ -50,6 +52,7 @@ cardsRouter.post(
 
 cardsRouter.put(
   '/:id',
+  validateCardInput,
   async (
     req: Request<IdParams, Card, CreateCardRequest>,
     res: Response<Card>,
