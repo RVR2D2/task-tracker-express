@@ -8,7 +8,7 @@ import {
   updateBoard,
 } from '../database/boards-repository';
 import { Board, CreateBoardRequest, GetBoardsResponse } from '../types/boards';
-import { IdParams } from '../types/common';
+import { BoardIdParams } from '../types/common';
 import { validateBoardInput } from './validation';
 
 export const boardsRouter = express.Router();
@@ -22,9 +22,9 @@ boardsRouter.get(
 );
 
 boardsRouter.get(
-  '/:id',
-  async (req: Request<IdParams, {}>, res: Response<Board | string>) => {
-    const board = await getOneBoard(req.params.id);
+  '/:boardId',
+  async (req: Request<BoardIdParams, {}>, res: Response<Board | string>) => {
+    const board = await getOneBoard(req.params.boardId);
 
     if (!board) {
       res.status(404).send('Board not found ');
@@ -51,14 +51,14 @@ boardsRouter.post(
 );
 
 boardsRouter.put(
-  '/:id',
+  '/:boardId',
   validateBoardInput,
   async (
-    req: Request<IdParams, Board, CreateBoardRequest>,
+    req: Request<BoardIdParams, Board, CreateBoardRequest>,
     res: Response<Board>,
   ) => {
     const board = {
-      id: req.params.id,
+      id: req.params.boardId,
       name: req.body.name,
     };
 
@@ -68,9 +68,9 @@ boardsRouter.put(
 );
 
 boardsRouter.delete(
-  '/:id',
-  async (req: Request<IdParams>, res: Response<void>) => {
-    await deleteBoard(req.params.id);
+  '/:boardId',
+  async (req: Request<BoardIdParams>, res: Response<void>) => {
+    await deleteBoard(req.params.boardId);
     res.sendStatus(204);
   },
 );

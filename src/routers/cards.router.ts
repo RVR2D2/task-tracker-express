@@ -8,7 +8,8 @@ import {
   updateCard,
 } from '../database/cards-repository';
 import { Card, CreateCardRequest, GetCardsResponse } from '../types/cards';
-import { IdParams } from '../types/common';
+
+import { CardIdParams } from '../types/common';
 import { validateCardInput } from './validation/validate-card-input';
 
 export const cardsRouter = express.Router();
@@ -22,9 +23,9 @@ cardsRouter.get(
 );
 
 cardsRouter.get(
-  '/:id',
-  async (req: Request<IdParams, {}>, res: Response<Card | string>) => {
-    const card = await getOneCard(req.params.id);
+  '/:cardId',
+  async (req: Request<CardIdParams, {}>, res: Response<Card | string>) => {
+    const card = await getOneCard(req.params.cardId);
 
     if (!card) {
       res.status(404).send('Card not found ');
@@ -51,14 +52,14 @@ cardsRouter.post(
 );
 
 cardsRouter.put(
-  '/:id',
+  '/:cardId',
   validateCardInput,
   async (
-    req: Request<IdParams, Card, CreateCardRequest>,
+    req: Request<CardIdParams, Card, CreateCardRequest>,
     res: Response<Card>,
   ) => {
     const card = {
-      id: req.params.id,
+      id: req.params.cardId,
       text: req.body.text,
     };
 
@@ -68,9 +69,9 @@ cardsRouter.put(
 );
 
 cardsRouter.delete(
-  '/:id',
-  async (req: Request<IdParams>, res: Response<void>) => {
-    await deleteCard(req.params.id);
+  '/:cardId',
+  async (req: Request<CardIdParams>, res: Response<void>) => {
+    await deleteCard(req.params.cardId);
     res.sendStatus(204);
   },
 );
