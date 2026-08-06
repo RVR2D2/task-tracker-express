@@ -3,6 +3,7 @@ import basicAuth from 'express-basic-auth';
 import { ADMIN_LOGIN, ADMIN_PASSWORD, PORT } from './config';
 import { createTables } from './database/create-tables';
 import { logger } from './logger';
+import { boardsRouter } from './routers/boards.router';
 import { cardsRouter } from './routers/cards.router';
 
 async function run() {
@@ -24,6 +25,7 @@ async function run() {
     res.send('HELLO');
   });
 
+  server.use('/boards', boardsRouter);
   server.use('/cards', cardsRouter);
 
   server.listen(PORT);
