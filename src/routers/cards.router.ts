@@ -7,17 +7,24 @@ import {
   getOneCard,
   updateCard,
 } from '../database/cards-repository';
-import { Card, CreateCardRequest, GetCardsResponse } from '../types/cards';
+import {
+  Card,
+  CreateCardRequest,
+  GetCardsResponse,
+  UpdateCardRequest,
+} from '../types/cards';
 
-import { CardIdParams } from '../types/common';
+import { getOneColumn } from '../database/columns-repository';
+import { CardIdParams, ColumnIdParams } from '../types/common';
+import { checkCardExistence, checkColumnExistence } from './middleware';
 import { validateCardInput } from './validation/validate-card-input';
 
-export const cardsRouter = express.Router();
+export const cardsRouter = express.Router({ mergeParams: true });
 
 cardsRouter.get(
   '/',
-  async (req: Request<{}, {}>, res: Response<GetCardsResponse>) => {
-    const cards = await getManyCard();
+  async (req: Request<ColumnIdParams, {}>, res: Response<GetCardsResponse>) => {
+    const cards = await getManyCard(req.params);
     res.send(cards);
   },
 );
@@ -25,7 +32,7 @@ cardsRouter.get(
 cardsRouter.get(
   '/:cardId',
   async (req: Request<CardIdParams, {}>, res: Response<Card | string>) => {
-    const card = await getOneCard(req.params.cardId);
+    const card = await getOneCard(req.params);
 
     if (!card) {
       res.status(404).send('Card not found ');
@@ -38,11 +45,16 @@ cardsRouter.get(
 
 cardsRouter.post(
   '/',
+  checkColumnExistence,
   validateCardInput,
-  async (req: Request<{}, Card, CreateCardRequest>, res: Response<Card>) => {
+  async (
+    req: Request<ColumnIdParams, Card, CreateCardRequest>,
+    res: Response<Card>,
+  ) => {
     const card: Card = {
       text: req.body.text,
       id: randomUUID(),
+      columnId: req.params.columnId,
     };
 
     await createCard(card);
@@ -54,13 +66,24 @@ cardsRouter.post(
 cardsRouter.put(
   '/:cardId',
   validateCardInput,
+  checkCardExistence,
   async (
-    req: Request<CardIdParams, Card, CreateCardRequest>,
-    res: Response<Card>,
+    { body, params }: Request<CardIdParams, Card, UpdateCardRequest>,
+    res: Response<Card | string>,
   ) => {
-    const card = {
-      id: req.params.cardId,
-      text: req.body.text,
+    if (params.columnId !== body.columnId) {
+      const column = await getOneColumn(body.columnId, params.boardId);
+
+      if (!column) {
+        res.status(404).send('Column not found');
+        return;
+      }
+    }
+
+    const card: Card = {
+      id: params.cardId,
+      text: body.text,
+      columnId: body.columnId,
     };
 
     await updateCard(card);
@@ -70,6 +93,7 @@ cardsRouter.put(
 
 cardsRouter.delete(
   '/:cardId',
+  checkCardExistence,
   async (req: Request<CardIdParams>, res: Response<void>) => {
     await deleteCard(req.params.cardId);
     res.sendStatus(204);
