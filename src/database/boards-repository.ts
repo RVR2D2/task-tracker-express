@@ -1,5 +1,18 @@
-import { Board } from '../types/boards';
-import { sqliteAll, sqliteGet, sqliteRun } from './db-connection';
+import {
+  Board,
+  GetBoardResponse,
+  GetBoardResponseColumn,
+} from '../types/boards';
+import { sqliteAll, sqliteRun } from './db-connection';
+
+type OneBoardDatabaseResult = {
+  boardId: string;
+  boardName: string;
+  columnId: string | null;
+  columnName: string | null;
+  cardId: string | null;
+  cardText: string | null;
+};
 
 //Create
 export const createBoard = async (board: Board): Promise<void> => {
@@ -35,20 +48,77 @@ export const deleteBoard = async (id: string): Promise<void> => {
 };
 
 //GetOne
-export const getOneBoard = async (id: string): Promise<Board | null> => {
-  const data = await sqliteGet(
+export const getOneBoard = async (
+  id: string,
+): Promise<GetBoardResponse | null> => {
+  const data = await sqliteAll(
     `
-      SELECT * FROM boards
-      where id = ?
+      SELECT 
+        boards.id as "boardId",
+        boards.name as "boardName",
+        columns.id as "columnId",
+        columns.name as "columnName",
+        cards.id as "cardId",
+        cards.text as "cardText"
+      FROM boards
+      LEFT JOIN columns ON boards.id = columns.board_id
+      LEFT JOIN cards ON columns.id = cards.column_id
+      WHERE boards.id = ?
+      ORDER BY columns.name ASC NULLS LAST,
+      columns.id ASC, cards.text ASC NULLS LAST
     `,
     [id],
   );
 
-  if (isBoard(data)) {
-    return data;
+  if (!isOneBoardResult(data) || !data.length) {
+    return null;
   }
 
-  return null;
+  return mapOneBoardResult(data);
+};
+
+const mapOneBoardResult = (
+  data: OneBoardDatabaseResult[],
+): GetBoardResponse => {
+  const columns: GetBoardResponseColumn[] = [];
+  let column: GetBoardResponseColumn | undefined;
+
+  for (const row of data) {
+    if (!row.columnId) break;
+    if (!column) {
+      column = {
+        id: row.columnId!,
+        name: row.columnName!,
+        cards: [],
+      };
+    }
+
+    if (column.id !== row.columnId) {
+      columns.push(column);
+      column = {
+        id: row.columnId!,
+        name: row.columnName!,
+        cards: [],
+      };
+    }
+
+    if (!row.cardId) continue;
+
+    column.cards.push({
+      id: row.cardId!,
+      text: row.cardText!,
+    });
+  }
+
+  if (column) {
+    columns.push(column);
+  }
+
+  return {
+    id: data[0].boardId,
+    name: data[0].boardName,
+    columns,
+  };
 };
 
 //GetMany
@@ -78,4 +148,21 @@ export const getManyBoard = async (): Promise<Board[]> => {
 const isBoard = (data: unknown): data is Board => {
   const board = data as Board;
   return Boolean(board && typeof board === 'object' && board.id && board.name);
+};
+
+const isOneBoardResult = (data: unknown): data is OneBoardDatabaseResult[] => {
+  if (!Array.isArray(data)) {
+    console.error(`Unknown data format on get board: ${data}`);
+    throw new Error('Unknown data format');
+  }
+
+  const board = data as OneBoardDatabaseResult[];
+
+  for (const row of board) {
+    if (!row || !row.boardId || !row.boardName) {
+      return false;
+    }
+  }
+
+  return true;
 };

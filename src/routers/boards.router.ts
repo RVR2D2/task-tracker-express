@@ -7,7 +7,12 @@ import {
   getOneBoard,
   updateBoard,
 } from '../database/boards-repository';
-import { Board, CreateBoardRequest, GetBoardsResponse } from '../types/boards';
+import {
+  Board,
+  CreateBoardRequest,
+  GetBoardResponse,
+  GetBoardsResponse,
+} from '../types/boards';
 import { BoardIdParams } from '../types/common';
 import { validateBoardInput } from './validation';
 
@@ -23,7 +28,10 @@ boardsRouter.get(
 
 boardsRouter.get(
   '/:boardId',
-  async (req: Request<BoardIdParams, {}>, res: Response<Board | string>) => {
+  async (
+    req: Request<BoardIdParams, GetBoardResponse, {}>,
+    res: Response<GetBoardResponse | string>,
+  ) => {
     const board = await getOneBoard(req.params.boardId);
 
     if (!board) {
